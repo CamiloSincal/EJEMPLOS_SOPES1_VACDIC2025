@@ -48,3 +48,108 @@ Una API REST que especifica interfaces que los programas pueden usar para hablar
 Un demonio es un programa que se ejecuta en segundo plano, sin interacción directa con el usuario. Los demonios se utilizan para realizar tareas de mantenimiento y administración del sistema, como la gestión de servicios, la programación de tareas y la monitorización del sistema.
 
 En el caso de Docker, el demonio es el servidor de Docker que se ejecuta en la máquina host y se encarga de gestionar los contenedores y las imágenes de Docker.
+
+## Docker Group
+```
+# Crear el grupo
+sudo groupadd docker
+
+# Agregar el usuario al grupo(Reemplazar $USER)
+sudo usermod -aG docker $USER
+
+# Activar el grupo
+newgrp docker
+```
+
+## Ejemplos de Docker
+### Primeros Comandos
+```
+# Verificar instalación
+docker --version
+
+# Descargar y ejecutar tu primer contenedor
+docker run hello-world
+
+# Listar contenedores en ejecución
+docker ps
+
+# Listar todos los contenedores (incluyendo detenidos)
+docker ps -a
+
+# Listar imágenes descargadas
+docker images
+```
+
+### Primer Dockerfile
+```
+# Dockerfile
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/
+EXPOSE 80
+```
+
+```
+# Construir la imagen
+docker build -t mi-web .
+
+# Ejecutar el contenedor
+docker run -d -p 8080:80 --name web-container mi-web
+
+# Ver logs
+docker logs web-container
+
+# Detener y eliminar
+docker stop web-container
+docker rm web-container
+```
+
+### Manejo de Imágenes y Contenedores
+#### Trabajo con imágenes
+```
+# Descargar imagen específica
+docker pull ubuntu:20.04
+
+# Ejecutar contenedor interactivo
+docker run -it ubuntu:20.04 /bin/bash
+
+# Desde otra terminal, ejecutar comandos en contenedor en ejecución
+docker exec -it web-container /bin/sh
+
+# Inspeccionar imagen/container
+docker inspect web-container
+
+# Ver historial de imagen
+docker history mi-web
+```
+
+#### Dockerfile intermedio
+```
+# Dockerfile para aplicación Python
+FROM python:3.9-slim
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar requirements primero (para aprovechar cache de Docker)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el resto de la aplicación
+COPY . .
+
+# Variables de entorno
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
+
+# Exponer puerto
+EXPOSE 8000
+
+# Comando para ejecutar
+CMD ["python", "app.py"]
+```
+
+Comandos para construir y ejecutar:
+```
+docker build -t mi-app-python .
+docker run -p 8000:8000 mi-app-python
+```
