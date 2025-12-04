@@ -1,4 +1,4 @@
-obj-m += basic.o # obj-m es una variable que contiene el nombre del modulo a compilar
+obj-m += holamundo.o # obj-m es una variable que contiene el nombre del modulo a compilar
 
 all: # all es una regla que se ejecuta por defecto si no se especifica una regla
 # Se compila el modulo

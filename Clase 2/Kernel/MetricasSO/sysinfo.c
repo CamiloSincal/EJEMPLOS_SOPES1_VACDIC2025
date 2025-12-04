@@ -1,13 +1,12 @@
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
+#include <linux/init.h> //Contiene macros como __init que se usan en las funciones de inicialización de módulos
+#include <linux/module.h> // Define la interfaz para los módulos de kernel
+#include <linux/kernel.h> // Define macros, tipos de datos y funciones que son fundamentales para el núcleo (kernel) de Linux
 #include <linux/proc_fs.h> // trae las funciones para crear archivos en /proc
 #include <linux/seq_file.h> // trae las funciones para escribir en archivos en /proc
 #include <linux/mm.h> // trae las funciones para manejar la memoria
 #include <linux/sched.h> // trae las funciones para manejar los procesos
 #include <linux/timer.h> // trae las funciones para manejar los timers
-#include <linux/jiffies.h> // trae las funciones para manejar los jiffies, que son los ticks del sistema
-
+#include <linux/jiffies.h> // trae las funciones para manejar los jiffies, que son los ticks o interrupciones del temporizador del sistema
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Nombre");
@@ -19,6 +18,8 @@ MODULE_VERSION("1.0");
 /* 
     Esta función se encarga de obtener la información de la memoria
     - si_meminfo: recibe un puntero a una estructura sysinfo, la cual se llena con la información de la memoria
+    - &: Obtiene la dirección de memoria de una variable
+    - *:  Accede o modifica el valor de la variable a la que apunta un puntero.
 */
 static int sysinfo_show(struct seq_file *m, void *v) {
     struct sysinfo si; // estructura que contiene la informacion de la memoria
@@ -32,12 +33,11 @@ static int sysinfo_show(struct seq_file *m, void *v) {
 
     seq_printf(m, "Total RAM: %lu KB\n", si.totalram * 4);
     seq_printf(m, "RAM Libre: %lu KB\n", si.freeram * 4);
+    seq_printf(m, "RAM en uso: %lu KB\n", (si.totalram - si.freeram) * 4);
     seq_printf(m, "RAM compartida: %lu KB\n", si.sharedram * 4);
     seq_printf(m, "Buffer RAM: %lu KB\n", si.bufferram * 4);
     seq_printf(m, "Total Swap: %lu KB\n", si.totalswap * 4);
     seq_printf(m, "Swap Libre: %lu KB\n", si.freeswap * 4);
-
-    seq_printf(m, "Número de procesos: %d\n", num_online_cpus());
 
     return 0;
 };
@@ -71,7 +71,7 @@ static const struct proc_ops sysinfo_ops = {
 */
 static int __init sysinfo_init(void) {
     proc_create(PROC_NAME, 0, NULL, &sysinfo_ops);
-    printk(KERN_INFO "sysinfo module loaded\n");
+    printk(KERN_INFO "modulo sysinfo cargado\n");
     return 0;
 }
 
@@ -81,7 +81,7 @@ static int __init sysinfo_init(void) {
 */
 static void __exit sysinfo_exit(void) {
     remove_proc_entry(PROC_NAME, NULL);
-    printk(KERN_INFO "sysinfo module unloaded\n");
+    printk(KERN_INFO "modulo sysinfo descargado\n");
 }
 
 module_init(sysinfo_init);
