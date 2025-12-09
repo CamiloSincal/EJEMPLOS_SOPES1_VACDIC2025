@@ -1,0 +1,8 @@
+# Ruta raíz
+curl http://localhost:3000/
+
+# Obtener usuarios
+curl http://localhost:3000/usuarios
+
+# Saludar con parámetro
+curl http://localhost:3000/saludar/Maria
