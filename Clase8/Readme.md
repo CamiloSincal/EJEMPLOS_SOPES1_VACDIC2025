@@ -65,34 +65,3 @@ En otra terminal, ejecutamos el cliente:
 ```
 go run client.go
 ```
-
----
-# Kubernetes
-Kubernetes es un sistema de orquestación de contenedores que automatiza el despliegue, la gestión y la escalabilidad de aplicaciones en contenedores. A continuación se presenta una descripción general de Kubernetes, junto con algunos comandos y ejemplos útiles.
-
----
-## Conceptos Principales
-### Cluster
-Un cluster es un conjunto de máquinas (nodos) que ejecutan aplicaciones en contenedores, coordinados por un nodo maestro (Control Plane).
-
-### Node
-Cada node es una máquina (física o virtual) que forma parte del clúster y ejecuta los Pods.
-
-### Pod
-El Pod es la unidad mínima de trabajo en Kubernetes. Puede contener uno o más contenedores y comparte recursos como almacenamiento y red.
-
-### Deployment
-Un Deployment es una definición que especifica cómo deben ejecutarse los Pods, gestionando réplicas, actualizaciones y fallos.
-
-### Service
-Un Service proporciona una dirección IP estable y un puerto para acceder a los Pods, incluso si cambian de IP.
-
-### Namespace
-Un Namespace permite segmentar lógicamente los recursos dentro del clúster para aislamiento y organización.
-
-### ConfigMap y Secret
-ConfigMap: Almacena configuraciones no sensibles.
-Secret: Almacena datos sensibles (como contraseñas) de forma segura.
-
---- 
-## ¿Cómo configuramos kubernetes (k8s) en GCP?

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clusterip-service
+spec:
+  type: ClusterIP
+  ports:
+    # Nginx escucha en 80
+  - targetPort: 80
+    port: 80 #Puerto del servicio
+  selector:
+    app: ej1
