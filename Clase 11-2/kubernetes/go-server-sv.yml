@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grpc-server-config
+data:
+  GRPC_PORT: "50051"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-server
+  labels:
+    app: grpc-server
+spec:
+  replicas: 2  # Cantidad de pods (instancias) del servidor
+  selector:
+    matchLabels:
+      app: grpc-server
+  template:
+    metadata:
+      labels:
+        app: grpc-server
+    spec:
+      containers:
+      - name: grpc-server
+        image: c8507ebd5490.ngrok-free.app/grpc-server
+        ports:
+        - containerPort: 50051  # Puerto donde escucha el servidor gRPC
+        envFrom:
+        - configMapRef:
+            name: grpc-server-config  # Inyecta variables del ConfigMap
+        resources:
+          requests:  # Recursos mínimos garantizados
+            memory: "128Mi"
+            cpu: "100m"
+          limits:    # Recursos máximos permitidos
+            memory: "256Mi"
+            cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server-service
+spec:
+  type: ClusterIP
+  selector:
+    app: grpc-server
+  ports:
+  - port: 50051          # Puerto del servicio
+    targetPort: 50051    # Puerto del contenedor

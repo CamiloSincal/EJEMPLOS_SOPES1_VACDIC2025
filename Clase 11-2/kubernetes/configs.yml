@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rust-go-config
+data:
+  GO_SERVICE_URL: "http://go-rest-service:8080"
+  GRPC_SERVER_ADDR: "grpc-server-service:50051"
+  PORT: "8080"
