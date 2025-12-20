@@ -1,0 +1,246 @@
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clima-app
+---
+# Kafka Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: clima-app
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:7.4.0
+        ports:
+        - containerPort: 9092
+        - containerPort: 9093
+        - containerPort: 29092
+        env:
+        - name: KAFKA_NODE_ID
+          value: "1"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://kafka-service:29092,PLAINTEXT_HOST://localhost:9092"
+        - name: KAFKA_LISTENERS
+          value: "PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093,PLAINTEXT_HOST://0.0.0.0:9092"
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: "PLAINTEXT"
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
+          value: "CONTROLLER"
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          value: "1@kafka-service:9093"
+        - name: KAFKA_PROCESS_ROLES
+          value: "broker,controller"
+        - name: KAFKA_LOG_DIRS
+          value: "/tmp/kraft-combined-logs"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "1"
+        - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+          value: "1"
+        - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+          value: "1"
+        - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+          value: "0"
+        - name: KAFKA_NUM_PARTITIONS
+          value: "3"
+        - name: CLUSTER_ID
+          value: "MkU3OEVBNTcwNTJENDM2Qk"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: kafka-data
+          mountPath: /tmp/kraft-combined-logs
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 45
+          periodSeconds: 10
+      volumes:
+      - name: kafka-data
+        emptyDir: {}
+---
+# Kafka Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-service
+  namespace: clima-app
+  labels:
+    app: kafka
+spec:
+  type: ClusterIP
+  ports:
+  - name: kafka
+    port: 9092
+    targetPort: 9092
+  - name: controller
+    port: 9093
+    targetPort: 9093
+  - name: internal
+    port: 29092
+    targetPort: 29092
+  selector:
+    app: kafka
+---
+# Main Deployment (main-k8s)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clima-producer
+  namespace: clima-app
+  labels:
+    app: clima-producer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: clima-producer
+  template:
+    metadata:
+      labels:
+        app: clima-producer
+    spec:
+      containers:
+      - name: clima-producer
+        image: ffdeede7ce47.ngrok-free.app/main-k8s
+        imagePullPolicy: Always
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service:29092"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep '[m]ain' || exit 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep '[m]ain' || exit 1"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+      restartPolicy: Always
+---
+# Producer Service (opcional, si necesitas exponer métricas o health endpoints)
+apiVersion: v1
+kind: Service
+metadata:
+  name: clima-producer-service
+  namespace: clima-app
+  labels:
+    app: clima-producer
+spec:
+  type: ClusterIP
+  selector:
+    app: clima-producer
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+# Consumer Deployment (consumer-k8s)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clima-consumer
+  namespace: clima-app
+  labels:
+    app: clima-consumer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: clima-consumer
+  template:
+    metadata:
+      labels:
+        app: clima-consumer
+    spec:
+      containers:
+      - name: clima-consumer
+        image: ffdeede7ce47.ngrok-free.app/consumer-k8s
+        imagePullPolicy: Always
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service:29092"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep '[m]ain' || exit 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep '[m]ain' || exit 1"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+      restartPolicy: Always
+---
+# Consumer Service (opcional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: clima-consumer-service
+  namespace: clima-app
+  labels:
+    app: clima-consumer
+spec:
+  type: ClusterIP
+  selector:
+    app: clima-consumer
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
