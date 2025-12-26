@@ -206,7 +206,7 @@ Al igual que los configmaps se rigen por claves valor, pero con la diferencia de
 Para crear un secret a partir de archivos y con kubectl usamos el siguiente comando:
 ```bash
 # para este ejemplo se usará el tipo genérico 
-# Para el tipo de información usaremos --from-file=./secrets/username.txt --from-file=./secrets/password.txt
+# Para el tipo de información usaremos generic mi-secret --from-file=./secrets/username.txt --from-file=./secrets/password.txt
 kubectl create secret <tipo-secret> <nombre-secret> <tipo-de-información>
 ```
 

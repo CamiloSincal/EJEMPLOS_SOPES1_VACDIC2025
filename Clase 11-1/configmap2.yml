@@ -5,12 +5,12 @@ metadata:
 spec:
   containers:
   - name: test-container
-    image: k8s.gcr.io/busybox
+    image: busybox:stable
     command: ["/bin/sh","-c","env"] # Se muestran las variables de entorno al ejecutar el pod
     env: # Acá se definen las variables de entorno
       - name: SPECIAL_LEVEL_KEY
         valueFrom:
           configMapKeyRef:
-            name: special-config # nombre del config
+            name: mi-config # nombre del config
             key: special.how # nombre de la clave a introducir
   restartPolicy: Never
